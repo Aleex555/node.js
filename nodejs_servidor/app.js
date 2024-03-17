@@ -130,7 +130,7 @@ app.post('/data', upload.single('file'), async (req, res) => {
         const apiUrl = 'http://localhost:11434/api/generate';
         const requestData = {
           model: 'llava',
-          prompt: "what is in the picture?",
+          prompt: "Que hay en la foto?",
           images: [base64Data],
         };
 

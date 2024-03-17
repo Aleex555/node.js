@@ -1,6 +1,7 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'app_data.dart'; // Asegura la ruta correcta
 
@@ -15,6 +16,15 @@ class LayoutDesktop extends StatefulWidget {
 class _LayoutDesktopState extends State<LayoutDesktop> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ImagePicker _picker = ImagePicker(); 
+
+  // Función para seleccionar una imagen
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      print("Imagen seleccionada: ${image.path}");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +71,11 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
                 ),
                 SizedBox(width: 8),
                 ElevatedButton(
+                  onPressed: _pickImage, // Llama a la función para seleccionar una imagen
+                  child: Icon(Icons.image), // Usa un icono más representativo
+                ),
+                SizedBox(width: 8),
+                ElevatedButton(
                   onPressed: () async {
                     if (_textController.text.isNotEmpty) {
                       appData.addMessage("Yo: ${_textController.text}");
@@ -69,7 +84,6 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
                       Map<String, dynamic> jsonResponse = json.decode(response);
                       String mensaje = jsonResponse["mensaje"];
                       appData.addMessage(mensaje);
-
                       _textController.clear();
                       Future.delayed(Duration(milliseconds: 100), () {
                         if (_scrollController.hasClients) {
@@ -92,3 +106,4 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
     );
   }
 }
+
