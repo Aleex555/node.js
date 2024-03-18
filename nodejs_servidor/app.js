@@ -117,10 +117,9 @@ app.post('/data', upload.single('file'), async (req, res) => {
 
 
   } else if(objPost.type == 'llava' ){
-    if (uploadedFile) {
       //console.log(objPost.data);
       // Suponiendo que el campo de archivo contiene datos de imagen codificados en base64
-      const base64Data = objPost.mensaje('base64');
+      const base64Data = objPost.mensaje;
       
   
       const responses = [];
@@ -164,10 +163,6 @@ app.post('/data', upload.single('file'), async (req, res) => {
         res.status(500).json({ error: 'Error haciendo la solicitud a la API' });
         return;
       }
-    } else {
-      // Si no hay archivo adjunto, enviar una respuesta JSON simple al cliente
-      res.status(200).json({ type: 'respuesta', mensaje: 'Sin archivo adjunto' });
-    }
 
   }
    else {
