@@ -91,12 +91,13 @@ class AppData with ChangeNotifier {
     }
   }
 
-  Future<String> sendImageToServer(String url, String imageBase64) async {
+  Future<String> sendImageToServer(
+      String url, String imageBase64, String prompt) async {
     try {
       var uri = Uri.parse(url);
       var request = http.MultipartRequest('POST', uri)
-        ..fields['data'] =
-            jsonEncode({'type': 'llava', 'mensaje': imageBase64});
+        ..fields['data'] = jsonEncode(
+            {'type': 'llava', 'mensaje': imageBase64, 'prompt': prompt});
       var response = await request.send();
 
       if (response.statusCode == 200) {

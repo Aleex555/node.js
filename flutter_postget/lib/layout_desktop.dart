@@ -115,7 +115,9 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
                       appData.addMessage("Yo: ${_textController.text}");
                       // Enviar el mensaje de texto al servidor
                       var response = await appData.sendImageToServer(
-                          'http://localhost:3000/data', appData.imagen);
+                          'http://localhost:3000/data',
+                          appData.imagen,
+                          _textController.text);
                       // Decodificar la respuesta JSON del servidor
                       Map<String, dynamic> jsonResponse = json.decode(response);
                       String mensaje = jsonResponse["mensaje"];

@@ -128,7 +128,7 @@ app.post('/data', upload.single('file'), async (req, res) => {
         const apiUrl = 'http://localhost:11434/api/generate';
         const requestData = {
           model: 'llava',
-          prompt: "Que hay en la foto?, Quiero una descripcion corta",
+          prompt: objPost.prompt,
           images: [base64Data],
         };
 
