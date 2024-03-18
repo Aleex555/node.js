@@ -24,9 +24,6 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       final AppData appData = Provider.of<AppData>(context, listen: false);
-      appData
-          .addMessage("Yo: Que hay en la foto?, Quiero una descripcion corta");
-
       // Leer los bytes de la imagen y codificarlos en base64
       final bytes = await File(image.path).readAsBytes();
       String imageBase64 = base64Encode(bytes);
@@ -89,7 +86,8 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
                 // Botón para enviar el mensaje de texto
                 ElevatedButton(
                   onPressed: () async {
-                    if (_textController.text.isNotEmpty) {
+                    if (_textController.text.isNotEmpty &&
+                        appData.imagen.isEmpty) {
                       // Añadir el mensaje a la lista de mensajes en AppData
                       appData.addMessage("Yo: ${_textController.text}");
                       // Enviar el mensaje de texto al servidor
