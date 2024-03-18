@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'app_data.dart'; // Asegura la ruta correcta
+import 'app_data.dart'; // Asegúrate de que esta ruta sea correcta y apunte a tu archivo AppData
 
 class LayoutDesktop extends StatefulWidget {
   const LayoutDesktop({Key? key, required this.title}) : super(key: key);
@@ -16,26 +16,50 @@ class LayoutDesktop extends StatefulWidget {
 class _LayoutDesktopState extends State<LayoutDesktop> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final ImagePicker _picker = ImagePicker(); 
+  final ImagePicker _picker = ImagePicker();
 
-  // Función para seleccionar una imagen
+  // Método para seleccionar una imagen y enviarla al servidor
   Future<void> _pickImage() async {
+    // Seleccionar imagen desde la galería
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      // Imprimir la ruta de la imagen seleccionada (solo para depuración)
       print("Imagen seleccionada: ${image.path}");
+
+      // Leer los bytes de la imagen y codificarlos en base64
+      final bytes = await File(image.path).readAsBytes();
+      String imageBase64 = base64Encode(bytes);
+
+      // Obtener la instancia de AppData usando Provider
+      final AppData appData = Provider.of<AppData>(context, listen: false);
+
+      // Llamar a sendImageToServer con la URL y la cadena Base64 de la imagen
+      String serverResponse = await appData.sendImageToServer(
+          'http://localhost:3000/data', imageBase64);
+
+      // Decodificar la respuesta JSON del servidor
+      Map<String, dynamic> jsonResponse = json.decode(serverResponse);
+      String mensaje = jsonResponse["mensaje"];
+
+      // Añadir el mensaje de respuesta a la lista de mensajes en AppData
+      appData.addMessage(mensaje);
+
+      // Opcional: manejar la respuesta del servidor como prefieras
+      print("Respuesta del servidor: $serverResponse");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Obtener la instancia de AppData usando Provider
     AppData appData = Provider.of<AppData>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
       body: Column(
         children: [
+          // ListView para mostrar los mensajes
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -56,6 +80,7 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
               },
             ),
           ),
+          // Campo de texto y botones para enviar mensajes y seleccionar imágenes
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -70,21 +95,29 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
                   ),
                 ),
                 SizedBox(width: 8),
+                // Botón para seleccionar una imagen
                 ElevatedButton(
-                  onPressed: _pickImage, // Llama a la función para seleccionar una imagen
-                  child: Icon(Icons.image), // Usa un icono más representativo
+                  onPressed: () => _pickImage(),
+                  child: Icon(Icons.image),
                 ),
                 SizedBox(width: 8),
+                // Botón para enviar el mensaje de texto
                 ElevatedButton(
                   onPressed: () async {
                     if (_textController.text.isNotEmpty) {
+                      // Añadir el mensaje a la lista de mensajes en AppData
                       appData.addMessage("Yo: ${_textController.text}");
+                      // Enviar el mensaje de texto al servidor
                       var response = await appData.sendTextToServer(
                           'http://localhost:3000/data', _textController.text);
+                      // Decodificar la respuesta JSON del servidor
                       Map<String, dynamic> jsonResponse = json.decode(response);
                       String mensaje = jsonResponse["mensaje"];
+                      // Añadir el mensaje de respuesta a la lista de mensajes en AppData
                       appData.addMessage(mensaje);
+                      // Limpiar el campo de texto
                       _textController.clear();
+                      // Opcional: desplazar automáticamente el ListView al último mensaje
                       Future.delayed(Duration(milliseconds: 100), () {
                         if (_scrollController.hasClients) {
                           _scrollController.animateTo(
@@ -106,4 +139,3 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
     );
   }
 }
-

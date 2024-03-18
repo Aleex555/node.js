@@ -81,7 +81,6 @@ app.post('/data', upload.single('file'), async (req, res) => {
   if (objPost.type == 'mistral' && objPost.mensaje) {
     
     try {
-      console.log("pepe");
       // Utiliza el mensaje proporcionado en lugar del prompt fijo
       const apiResponse = await axios.post('http://localhost:11434/api/generate', {
         model: 'mistral',
@@ -121,7 +120,7 @@ app.post('/data', upload.single('file'), async (req, res) => {
     if (uploadedFile) {
       //console.log(objPost.data);
       // Suponiendo que el campo de archivo contiene datos de imagen codificados en base64
-      const base64Data = uploadedFile.buffer.toString('base64');
+      const base64Data = objPost.mensaje.toString('base64');
       
   
       const responses = [];

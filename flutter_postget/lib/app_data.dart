@@ -89,4 +89,24 @@ class AppData with ChangeNotifier {
       throw Exception("Failed to send data: $e");
     }
   }
+
+  Future<String> sendImageToServer(String url, String imageBase64) async {
+    try {
+      var uri = Uri.parse(url);
+      var request = http.MultipartRequest('POST', uri)
+        ..fields['data'] = jsonEncode({'type': 'image', 'image': imageBase64});
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        var responseData = await response.stream.toBytes();
+        var responseString = utf8.decode(responseData);
+        return responseString;
+      } else {
+        throw Exception(
+            "Failed to send data. Server responded with status code ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Failed to send data: $e");
+    }
+  }
 }
