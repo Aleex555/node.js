@@ -23,15 +23,15 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
     // Seleccionar imagen desde la galería
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      // Imprimir la ruta de la imagen seleccionada (solo para depuración)
-      print("Imagen seleccionada: ${image.path}");
+      final AppData appData = Provider.of<AppData>(context, listen: false);
+      appData
+          .addMessage("Yo: Que hay en la foto?, Quiero una descripcion corta");
 
       // Leer los bytes de la imagen y codificarlos en base64
       final bytes = await File(image.path).readAsBytes();
       String imageBase64 = base64Encode(bytes);
 
       // Obtener la instancia de AppData usando Provider
-      final AppData appData = Provider.of<AppData>(context, listen: false);
 
       // Llamar a sendImageToServer con la URL y la cadena Base64 de la imagen
       String serverResponse = await appData.sendImageToServer(
