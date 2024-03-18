@@ -94,7 +94,8 @@ class AppData with ChangeNotifier {
     try {
       var uri = Uri.parse(url);
       var request = http.MultipartRequest('POST', uri)
-        ..fields['data'] = jsonEncode({'type': 'image', 'image': imageBase64});
+        ..fields['data'] =
+            jsonEncode({'type': 'llava', 'mensaje': imageBase64});
       var response = await request.send();
 
       if (response.statusCode == 200) {

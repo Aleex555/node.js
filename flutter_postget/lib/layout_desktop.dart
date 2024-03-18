@@ -43,9 +43,6 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
 
       // Añadir el mensaje de respuesta a la lista de mensajes en AppData
       appData.addMessage(mensaje);
-
-      // Opcional: manejar la respuesta del servidor como prefieras
-      print("Respuesta del servidor: $serverResponse");
     }
   }
 

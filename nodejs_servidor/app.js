@@ -120,7 +120,7 @@ app.post('/data', upload.single('file'), async (req, res) => {
     if (uploadedFile) {
       //console.log(objPost.data);
       // Suponiendo que el campo de archivo contiene datos de imagen codificados en base64
-      const base64Data = objPost.mensaje.toString('base64');
+      const base64Data = objPost.mensaje('base64');
       
   
       const responses = [];
