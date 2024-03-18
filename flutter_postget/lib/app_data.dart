@@ -22,6 +22,7 @@ class AppData with ChangeNotifier {
   dynamic dataGet;
   dynamic dataPost;
   dynamic dataFile;
+  String imagen = "";
 
   List<String> _messages = [];
 

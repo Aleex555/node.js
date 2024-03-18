@@ -30,19 +30,7 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
       // Leer los bytes de la imagen y codificarlos en base64
       final bytes = await File(image.path).readAsBytes();
       String imageBase64 = base64Encode(bytes);
-
-      // Obtener la instancia de AppData usando Provider
-
-      // Llamar a sendImageToServer con la URL y la cadena Base64 de la imagen
-      String serverResponse = await appData.sendImageToServer(
-          'http://localhost:3000/data', imageBase64);
-
-      // Decodificar la respuesta JSON del servidor
-      Map<String, dynamic> jsonResponse = json.decode(serverResponse);
-      String mensaje = jsonResponse["mensaje"];
-
-      // Añadir el mensaje de respuesta a la lista de mensajes en AppData
-      appData.addMessage(mensaje);
+      appData.imagen = imageBase64;
     }
   }
 
@@ -107,6 +95,29 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
                       // Enviar el mensaje de texto al servidor
                       var response = await appData.sendTextToServer(
                           'http://localhost:3000/data', _textController.text);
+                      // Decodificar la respuesta JSON del servidor
+                      Map<String, dynamic> jsonResponse = json.decode(response);
+                      String mensaje = jsonResponse["mensaje"];
+                      // Añadir el mensaje de respuesta a la lista de mensajes en AppData
+                      appData.addMessage(mensaje);
+                      // Limpiar el campo de texto
+                      _textController.clear();
+                      // Opcional: desplazar automáticamente el ListView al último mensaje
+                      Future.delayed(Duration(milliseconds: 100), () {
+                        if (_scrollController.hasClients) {
+                          _scrollController.animateTo(
+                            _scrollController.position.maxScrollExtent,
+                            curve: Curves.easeOut,
+                            duration: const Duration(milliseconds: 300),
+                          );
+                        }
+                      });
+                    } else if (_textController.text.isNotEmpty &&
+                        appData.imagen.isNotEmpty) {
+                      appData.addMessage("Yo: ${_textController.text}");
+                      // Enviar el mensaje de texto al servidor
+                      var response = await appData.sendImageToServer(
+                          'http://localhost:3000/data', appData.imagen);
                       // Decodificar la respuesta JSON del servidor
                       Map<String, dynamic> jsonResponse = json.decode(response);
                       String mensaje = jsonResponse["mensaje"];
