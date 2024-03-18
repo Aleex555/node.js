@@ -125,6 +125,7 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
                       appData.addMessage(mensaje);
                       // Limpiar el campo de texto
                       _textController.clear();
+                      appData.imagen = "";
                       // Opcional: desplazar automáticamente el ListView al último mensaje
                       Future.delayed(Duration(milliseconds: 100), () {
                         if (_scrollController.hasClients) {
