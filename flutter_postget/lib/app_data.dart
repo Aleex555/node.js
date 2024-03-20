@@ -31,46 +31,9 @@ class AppData with ChangeNotifier {
   // Function to add a message
   void addMessage(String message) {
     _messages.add(message);
-    notifyListeners(); // Notify listeners to update the UI
+    notifyListeners();
   }
 
-  // Funció per fer crides tipus 'GET' i agafar la informació a mida que es va rebent
-  Future<String> loadHttpGetByChunks(String url) async {
-    var httpClient = HttpClient();
-    var completer = Completer<String>();
-    String result = "";
-
-    // If development, wait 1 second to simulate a delay
-    if (!kReleaseMode) {
-      await Future.delayed(const Duration(seconds: 1));
-    }
-
-    try {
-      var request = await httpClient.getUrl(Uri.parse(url));
-      var response = await request.close();
-
-      response.transform(utf8.decoder).listen(
-        (data) {
-          // Aquí rep cada un dels troços de dades que envia el servidor amb 'res.write'
-          result += data;
-        },
-        onDone: () {
-          completer.complete(result);
-        },
-        onError: (error) {
-          completer.completeError(
-              "Error del servidor (appData/loadHttpGetByChunks): $error");
-        },
-      );
-    } catch (e) {
-      completer.completeError("Excepció (appData/loadHttpGetByChunks): $e");
-    }
-
-    return completer.future;
-  }
-
-  // Funció per fer crides tipus 'POST' amb un arxiu adjunt,
-  //i agafar la informació a mida que es va rebent
   Future<String> sendTextToServer(String url, String text) async {
     try {
       var uri = Uri.parse(url);
