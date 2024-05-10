@@ -17,6 +17,7 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
+  bool isSending = false; // Variable para controlar el estado del envío
 
   // Método para seleccionar una imagen y enviarla al servidor
   Future<void> _pickImage() async {
@@ -85,59 +86,54 @@ class _LayoutDesktopState extends State<LayoutDesktop> {
                 SizedBox(width: 8),
                 // Botón para enviar el mensaje de texto
                 ElevatedButton(
-                  onPressed: () async {
-                    if (_textController.text.isNotEmpty &&
-                        appData.imagen.isEmpty) {
-                      // Añadir el mensaje a la lista de mensajes en AppData
-                      appData.addMessage("Yo: ${_textController.text}");
-                      // Enviar el mensaje de texto al servidor
-                      var response = await appData.sendTextToServer(
-                          'http://localhost:3000/data', _textController.text);
-                      // Decodificar la respuesta JSON del servidor
-                      Map<String, dynamic> jsonResponse = json.decode(response);
-                      String mensaje = jsonResponse["mensaje"];
-                      // Añadir el mensaje de respuesta a la lista de mensajes en AppData
-                      appData.addMessage(mensaje);
-                      // Limpiar el campo de texto
-                      _textController.clear();
-                      // Opcional: desplazar automáticamente el ListView al último mensaje
-                      Future.delayed(Duration(milliseconds: 100), () {
-                        if (_scrollController.hasClients) {
-                          _scrollController.animateTo(
-                            _scrollController.position.maxScrollExtent,
-                            curve: Curves.easeOut,
-                            duration: const Duration(milliseconds: 300),
-                          );
-                        }
-                      });
-                    } else if (_textController.text.isNotEmpty &&
-                        appData.imagen.isNotEmpty) {
-                      appData.addMessage("Yo: ${_textController.text}");
-                      // Enviar el mensaje de texto al servidor
-                      var response = await appData.sendImageToServer(
-                          'http://localhost:3000/data',
-                          appData.imagen,
-                          _textController.text);
-                      // Decodificar la respuesta JSON del servidor
-                      Map<String, dynamic> jsonResponse = json.decode(response);
-                      String mensaje = jsonResponse["mensaje"];
-                      // Añadir el mensaje de respuesta a la lista de mensajes en AppData
-                      appData.addMessage(mensaje);
-                      // Limpiar el campo de texto
-                      _textController.clear();
-                      appData.imagen = "";
-                      // Opcional: desplazar automáticamente el ListView al último mensaje
-                      Future.delayed(Duration(milliseconds: 100), () {
-                        if (_scrollController.hasClients) {
-                          _scrollController.animateTo(
-                            _scrollController.position.maxScrollExtent,
-                            curve: Curves.easeOut,
-                            duration: const Duration(milliseconds: 300),
-                          );
-                        }
-                      });
-                    }
-                  },
+                  onPressed: isSending
+                      ? null
+                      : () async {
+                          setState(() {
+                            isSending = true;
+                          });
+                          if (_textController.text.isNotEmpty &&
+                              appData.imagen.isEmpty) {
+                            appData.addMessage("Yo: ${_textController.text}");
+                            appData.texto = _textController.text;
+                            setState(() {
+                              _textController.clear();
+                            });
+                            var response = await appData.sendTextToServer(
+                                'http://localhost:3000/data', appData.texto);
+                            Map<String, dynamic> jsonResponse =
+                                json.decode(response);
+                            String mensaje = jsonResponse["mensaje"];
+                            appData.addMessage(mensaje);
+                          } else if (_textController.text.isNotEmpty &&
+                              appData.imagen.isNotEmpty) {
+                            appData.addMessage("Yo: ${_textController.text}");
+                            appData.texto = _textController.text;
+                            setState(() {
+                              _textController.clear();
+                            });
+                            var response = await appData.sendImageToServer(
+                                'http://localhost:3000/data',
+                                appData.imagen,
+                                appData.texto);
+                            Map<String, dynamic> jsonResponse =
+                                json.decode(response);
+                            String mensaje = jsonResponse["mensaje"];
+                            appData.addMessage(mensaje);
+                            appData.imagen = "";
+                          }
+                          setState(() {
+                            isSending = false;
+                            _textController.clear();
+                            if (_scrollController.hasClients) {
+                              _scrollController.animateTo(
+                                _scrollController.position.maxScrollExtent,
+                                curve: Curves.easeOut,
+                                duration: const Duration(milliseconds: 300),
+                              );
+                            }
+                          });
+                        },
                   child: Text("Enviar"),
                 ),
               ],

@@ -64,110 +64,65 @@ async function getIeti(req, res) {
 // Esto es importate para que se envien los mensajes poco a poco
 
 app.post('/data', upload.single('file'), async (req, res) => {
-  const textPost = req.body;
-  const uploadedFile = req.file;
-  let objPost = {};
+  if (!req.body.data) {
+    return res.status(400).send('Falta el campo de datos.');
+  }
 
+  let objPost;
   try {
-    objPost = JSON.parse(textPost.data);
-    console.log(objPost);
+    objPost = JSON.parse(req.body.data);
+    console.log('Mensaje recibido:', objPost);
   } catch (error) {
-    console.log('Error parsing JSON:', error);  // Agrega esta línea para imprimir el error
-    res.status(400).send('Solicitud incorrecta.');
-    return;
+    return res.status(400).send('JSON mal formado.');
   }
 
-
-  if (objPost.type == 'mistral' && objPost.mensaje) {
-    
-    try {
-      // Utiliza el mensaje proporcionado en lugar del prompt fijo
-      const apiResponse = await axios.post('http://localhost:11434/api/generate', {
-        model: 'mistral',
-        prompt: objPost.mensaje,
-      });
-
-      // Almacena todas las respuestas en un array
-      const responses = [];
-      apiResponse.data.split('\n').forEach(line => {
-        if (line.trim() !== '') {
-          const responseObj = JSON.parse(line);
-          responses.push(responseObj);
-          // Imprime cada respuesta en el servidor
-          
-        }
-      });
-      console.log(apiResponse.data);
-      
-
-      // Construye un objeto JSON con la estructura deseada
-      const jsonResponse = {
-        type: 'respuesta',
-        mensaje: responses.map(response => response.response).join(''),
-      };
-      console.log(jsonResponse);
-      // Envía el objeto JSON como respuesta
-      res.status(200).json(jsonResponse);
-      responses.clear;
-      
-    } catch (error) {
-      console.error('Error al realizar la solicitud a la API:', error);
-      res.status(500).send('Error interno del seridor.');
-    }
-
-
-  } else if(objPost.type == 'llava' ){
-      //console.log(objPost.data);
-      // Suponiendo que el campo de archivo contiene datos de imagen codificados en base64
-      const base64Data = objPost.mensaje;
-      
-  
-      const responses = [];
-      // Enviar datos a la otra API usando axios
-      try {
-        const apiUrl = 'http://localhost:11434/api/generate';
-        const requestData = {
-          model: 'llava',
-          prompt: objPost.prompt,
-          images: [base64Data],
-        };
-
-        const response = await axios.post(apiUrl, requestData);
-
-        const responses = [];
-        response.data.split('\n').forEach(line => {
-          if (line.trim() !== '') {
-            const responseObj = JSON.parse(line);
-            responses.push(responseObj);
-          }
-        });
-
-        // Construir un objeto JSON con la estructura deseada
-        const jsonResponse = {
-          type: 'respuesta',
-          mensaje: responses.map(response => response.response).join(''),
-        };
-       /*{
-          type: 'respuesta',
-          mensaje: " In this picture, there is a large elephant with a wide trunk standing in the grass. It appears to be an adult male African elephant. The setting is outdoors with the sky visible above the elephant's head, creating a serene and natural atmosphere."
-        }*/
-       
-        // Enviar la respuesta JSON al cliente
-        res.status(200).json(jsonResponse);
-        responses.clear;
-
-
-
-      } catch (error) {
-        console.error('Error haciendo la solicitud a la API:', error.message);
-        res.status(500).json({ error: 'Error haciendo la solicitud a la API' });
-        return;
-      }
-
+  if (!objPost.type || !objPost.mensaje) {
+    return res.status(400).send('Faltan campos necesarios.');
   }
-   else {
-    res.status(400).send('Solicitud incorrecta. Se requiere la propiedad "type" y "mensaje".');
+
+  switch (objPost.type) {
+    case 'mistral':
+      return handleMistralType(objPost, res);
+    case 'llava':
+      return handleLlavaType(objPost, res);
+    default:
+      return res.status(400).send('Tipo de mensaje no soportado.');
   }
 });
+
+async function handleMistralType(objPost, res) {
+  try {
+    const apiResponse = await axios.post('http://localhost:11434/api/generate', {
+      model: 'mistral',
+      prompt: objPost.mensaje,
+    });
+    const responses = apiResponse.data.split('\n').filter(line => line.trim() !== '').map(JSON.parse);
+    const jsonResponse = { type: 'respuesta', mensaje: responses.map(r => r.response).join('') };
+    console.log('Respuesta de la API:', jsonResponse);
+
+    res.status(200).json(jsonResponse);
+  } catch (error) {
+    console.error('Error al realizar la solicitud a la API:', error);
+    res.status(500).send('Error interno del servidor.');
+  }
+}
+
+async function handleLlavaType(objPost, res) {
+  try {
+    const apiResponse = await axios.post('http://localhost:11434/api/generate', {
+      model: 'llava',
+      prompt: objPost.prompt,
+      images: [objPost.mensaje],
+    });
+    const responses = apiResponse.data.split('\n').filter(line => line.trim() !== '').map(JSON.parse);
+    const jsonResponse = { type: 'respuesta', mensaje: responses.map(r => r.response).join('') };
+    console.log('Respuesta de la API:', jsonResponse);
+
+    res.status(200).json(jsonResponse);
+  } catch (error) {
+    console.error('Error haciendo la solicitud a la API:', error.message);
+    res.status(500).json({ error: 'Error haciendo la solicitud a la API' });
+  }
+}
 
 
